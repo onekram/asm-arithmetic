@@ -17,7 +17,10 @@ import Options.Applicative
 --------------------- Data ----------------------------
 -------------------------------------------------------
 
-type Operation = Integer -> Integer -> Integer
+data Operation = Operation {
+  f    :: Integer -> Integer -> Integer,
+  name :: String
+}
 
 data Test = Test {
   ord  :: Int,
@@ -40,11 +43,8 @@ instance Show TestResolution where
 success :: TestResolution -> Bool
 success = isRight . res
 
-showOp :: Operation -> String
-showOp (+) = "+"
-showOp (*) = "*"
-showOp (-) = "-"
-showOp _ = "OP"
+instance Show Operation where
+  show = name
 
 -------------------------------------------------------
 -------------------- Testing --------------------------
@@ -70,13 +70,13 @@ getStudentAnswer solution a b = getInternal >>= (\(ans, exitCode) -> pure (check
 
 test :: FilePath -> Operation -> Test -> IO TestResolution
 test solution op t = do ans <- getStudentAnswer solution l r
-                        let realAns = op l r
+                        let realAns = (f op) l r
                         case ans of
                           Right stAns -> if realAns == stAns
                                             then endWith $ Right ()
                                             else endWith $ Left (  "\n" 
                                                                 ++ show l
-                                                                ++ "\n ++ (showOp op) ++ \n"
+                                                                ++ "\n" ++ show op ++ "\n"
                                                                 ++ show r
                                                                 ++ "\n= (real answer)\n"
                                                                 ++ show realAns
@@ -125,9 +125,9 @@ options = Options <$> op <*> binary <*> max <*> tests
     tests  = option auto ( long "tests" <> metavar "n" <> help "Number of tests" <> value 100 <> showDefault)
     op     = hsubparser (mul <> add <> sub)
       where
-        mul    = command "mul" (info (pure (*)) (progDesc "Multiplication"))
-        add    = command "add" (info (pure (+)) (progDesc "Add"))
-        sub    = command "sub" (info (pure (-)) (progDesc "Substract"))
+        mul    = command "mul" (info (pure (Operation (*) "*")) (progDesc "Multiplication"))
+        add    = command "add" (info (pure (Operation (+) "+")) (progDesc "Add"))
+        sub    = command "sub" (info (pure (Operation (-) "-")) (progDesc "Substract"))
 
 opts :: ParserInfo Options
 opts = info (options <**> helper) (fullDesc <> progDesc "" <> header "test - a program, which tests mul/sub/add solutions ")
