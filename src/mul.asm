@@ -305,4 +305,5 @@ print_string:
                 section         .rodata
 invalid_char_msg:
                 db              "Invalid character: "
-invalid_char_msg_size: equ             $ - invalid_char_msg
+invalid_char_msg_size: \
+                equ             $ - invalid_char_msg
