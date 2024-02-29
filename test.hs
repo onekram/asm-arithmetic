@@ -74,13 +74,13 @@ test solution op t = do ans <- getStudentAnswer solution l r
                         case ans of
                           Right stAns -> if realAns == stAns
                                             then endWith $ Right ()
-                                            else endWith $ Left (  "\n" 
+                                            else endWith $ Left (  "\n"
                                                                 ++ show l
                                                                 ++ "\n" ++ show op ++ "\n"
                                                                 ++ show r
                                                                 ++ "\n= (real answer)\n"
                                                                 ++ show realAns
-                                                                ++ "\n!= (your answer)\n" 
+                                                                ++ "\n!= (your answer)\n"
                                                                 ++ show stAns
                                                                 )
                           Left err  -> endWith $ Left err
