@@ -18,7 +18,7 @@ import Options.Applicative
 -------------------------------------------------------
 
 data Operation = Operation {
-  f    :: Integer -> Integer -> Integer,
+  f    :: Integer -> Integer -> Integer -> Integer,
   name :: String
 }
 
@@ -68,43 +68,54 @@ getStudentAnswer solution a b = getInternal >>= (\(ans, exitCode) -> pure (check
                                    ExitFailure code -> makeError "Solution's exit code != 0, is " code
     makeError prefix err = Left (prefix ++ show err)
 
-test :: FilePath -> Operation -> Test -> IO TestResolution
-test solution op t = do ans <- getStudentAnswer solution l r
-                        let realAns = (f op) l r
-                        case ans of
-                          Right stAns -> if realAns == stAns
-                                            then endWith $ Right ()
-                                            else endWith $ Left (  "\n"
-                                                                ++ show l
-                                                                ++ "\n" ++ show op ++ "\n"
-                                                                ++ show r
-                                                                ++ "\n= (real answer)\n"
-                                                                ++ show realAns
-                                                                ++ "\n!= (your answer)\n"
-                                                                ++ show stAns
-                                                                )
-                          Left err  -> endWith $ Left err
+test :: FilePath -> Operation -> Integer -> Test -> IO TestResolution
+test solution op m t = do ans <- getStudentAnswer solution l r
+                          let realAns = (f op) m l r
+                          case ans of
+                            Right stAns -> if realAns == stAns
+                                              then endWith $ Right ()
+                                              else endWith $ Left (  "\n"
+                                                                  ++ show l
+                                                                  ++ "\n" ++ show op ++ "\n"
+                                                                  ++ show r
+                                                                  ++ "\n= (real answer)\n"
+                                                                  ++ show realAns
+                                                                  ++ "\n!= (your answer)\n"
+                                                                  ++ show stAns
+                                                                  )
+                            Left err  -> endWith $ Left err
                      where
                        endWith = pure . TestResolution (ord t)
                        l       = lhs t
                        r       = rhs t
 
-randomTest :: FilePath -> Operation -> (Integer, Integer) -> Int -> IO TestResolution
-randomTest solution op minmax ord = do l <- gen
-                                       r <- gen
-                                       test solution op (Test ord (Prelude.max l r) (Prelude.min l r))
-                                    where gen = randomRIO minmax
+randomTest :: (Integer, Integer) -> Int -> IO Test
+randomTest minmax ord = do l <- gen
+                           r <- gen
+                           return (Test ord l r)
+                        where gen = randomRIO minmax
 
 exam :: Options -> IO ()
-exam (Options op solution m n) = generate >>= run >>= print >>= exit
+exam (Options op solution m n) = generate >>= tests >>= run >>= print >>= exit
   where
     minmax   = (0, 2 ^ (m * 64) - 1)
     generate = pure [1 .. n]
-    run      = mapM (randomTest solution op minmax)
+    tests    = mapM (randomTest minmax)
+    run      = mapM (test solution op (2 ^ (m * 64)))
     print    = mapM (\x -> (putStrLn (show x) >> pure x))
     exit ts  = case all success ts of
                  True  -> exitWith ExitSuccess
                  False -> exitWith (ExitFailure 1)
+
+-------------------------------------------------------
+-------------------- Options --------------------------
+-------------------------------------------------------
+
+modAdd :: Integer -> Integer -> Integer -> Integer
+modAdd m l r = (l + r) `mod` m
+
+modSub :: Integer -> Integer -> Integer -> Integer
+modSub m l r = (l - r + m) `mod` m
 
 -------------------------------------------------------
 -------------------- Options --------------------------
@@ -125,9 +136,9 @@ options = Options <$> op <*> binary <*> max <*> tests
     tests  = option auto ( long "tests" <> metavar "n" <> help "Number of tests" <> value 100 <> showDefault)
     op     = hsubparser (mul <> add <> sub)
       where
-        mul    = command "mul" (info (pure (Operation (*) "*")) (progDesc "Multiplication"))
-        add    = command "add" (info (pure (Operation (+) "+")) (progDesc "Add"))
-        sub    = command "sub" (info (pure (Operation (-) "-")) (progDesc "Substract"))
+        mul    = command "mul" (info (pure (Operation (const (*)) "*")) (progDesc "Multiplication"))
+        add    = command "add" (info (pure (Operation modAdd "+")) (progDesc "Add"))
+        sub    = command "sub" (info (pure (Operation modSub "-")) (progDesc "Substract"))
 
 opts :: ParserInfo Options
 opts = info (options <**> helper) (fullDesc <> progDesc "" <> header "test - a program, which tests mul/sub/add solutions ")
