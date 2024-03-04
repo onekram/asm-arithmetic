@@ -108,7 +108,7 @@ exam (Options op solution m n) = generate >>= tests >>= run >>= print >>= exit
                  False -> exitWith (ExitFailure 1)
 
 -------------------------------------------------------
--------------------- Options --------------------------
+-------------------- Operations -----------------------
 -------------------------------------------------------
 
 modAdd :: Integer -> Integer -> Integer -> Integer
