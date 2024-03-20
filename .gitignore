@@ -17,3 +17,6 @@ build/
 # Build
 *.o
 *.out
+
+# Test files
+test*
