@@ -1,6 +1,6 @@
 long_size: \
-                equ             128 
-                
+                equ             128
+
                 section         .text
 
                 global          _start
