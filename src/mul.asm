@@ -6,21 +6,21 @@ long_size: \
                 global          _start
 _start:
 
-                sub             rsp, 4 * long_size * 8
+                sub             rsp, 3 * long_size * 8
 
                 mov             rcx, long_size * 2
-                lea             rdi, [rsp + 2 * long_size * 8]
+                lea             rdi, [rsp + 1 * long_size * 8]
                 call            set_zero
 
                 mov             rcx, long_size
-                lea             rdi, [rsp + 1 * long_size * 8]
+                lea             rdi, [rsp + 2 * long_size * 8]
                 call            read_long
 
                 lea             rdi, [rsp + 0 * long_size * 8]
                 call            read_long
 
-                lea             rsi, [rsp + 1 * long_size * 8]
-                lea             rdx, [rsp + 2 * long_size * 8]
+                lea             rsi, [rsp + 2 * long_size * 8]
+                lea             rdx, [rsp + 1 * long_size * 8]
 
                 sub             rsp, 1 * long_size * 8
                 sub             rsp, 1 * 1 * 8
@@ -70,9 +70,17 @@ mul_long_long:
                 pop             rsi
                 pop             rdi
 
+                mov             rbx, [rsi]
+                push            rdi
+                push            rcx
+                mov             rcx, 1
+                mov             rdi, rsi
+                call            set_zero
+                pop             rcx
+                pop             rdi
+
                 push            rdi
                 mov             rdi, r8
-                mov             rbx, [rsi]
                 lea             rsi, [rsi + 8]
                 call            mul_long_short_extended
                 pop             rdi
