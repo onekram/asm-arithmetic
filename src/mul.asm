@@ -1,33 +1,36 @@
+long_size: \
+                equ             128 
+                
                 section         .text
 
                 global          _start
 _start:
 
-                sub             rsp, 4 * 128 * 8
+                sub             rsp, 4 * long_size * 8
 
-                mov             rcx, 256
-                lea             rdi, [rsp + 2 * 128 * 8]
+                mov             rcx, long_size * 2
+                lea             rdi, [rsp + 2 * long_size * 8]
                 call            set_zero
 
-                mov             rcx, 128
-                lea             rdi, [rsp + 1 * 128 * 8]
+                mov             rcx, long_size
+                lea             rdi, [rsp + 1 * long_size * 8]
                 call            read_long
 
-                lea             rdi, [rsp + 0 * 128 * 8]
+                lea             rdi, [rsp + 0 * long_size * 8]
                 call            read_long
 
-                lea             rsi, [rsp + 1 * 128 * 8]
-                lea             rdx, [rsp + 2 * 128 * 8]
+                lea             rsi, [rsp + 1 * long_size * 8]
+                lea             rdx, [rsp + 2 * long_size * 8]
 
-                sub             rsp, 1 * 128 * 8
+                sub             rsp, 1 * long_size * 8
                 sub             rsp, 1 * 1 * 8
 
-                mov             rcx, 128
+                mov             rcx, long_size
                 mov             r8, rsp
                 call            mul_long_long
 
                 mov             rdi, rdx
-                mov             rcx, 256
+                mov             rcx, long_size * 2
                 call            write_long
 
                 mov             al, 0x0a
@@ -50,8 +53,6 @@ mul_long_long:
                 push            rdx
 
                 mov             rbp, rcx
-
-                clc
 .loop:
                 push            rdi
                 push            rcx
